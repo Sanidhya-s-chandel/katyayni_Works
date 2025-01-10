@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Logout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+      <i class="ri-camera-line text-xl"></i> Logout from Camera
+    </h1>
+
+    <form action="/" method="POST" class="space-y-6">
+      <!-- Camera Name -->
+      <div>
+        <label for="cameraName" class="block text-gray-600 font-medium mb-2">Camera Name</label>
+        <input 
+          type="text" 
+          id="cameraName" 
+          name="cameraName" 
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="Enter Camera Name" 
+          required>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button 
+          type="submit" 
+          class="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+          <i class="ri-logout-circle-line mr-2"></i> Logout
+        </button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Configuration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-r from-blue-50 via-gray-100 to-green-50 flex items-center justify-center min-h-screen px-4">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center">
+      <i class="ri-camera-fill text-blue-500 mr-2"></i>
+      Add Camera Configuration
+    </h1>
+    <form action="/" method="POST" class="space-y-6">
+      <!-- Hardware Address -->
+      <div>
+        <label for="hardwareAddress" class="block text-gray-600 font-medium mb-2">
+          <i class="ri-mac-line text-gray-500 mr-2"></i>
+          Hardware Address (MAC)
+        </label>
+        <input 
+          type="text" 
+          id="hardwareAddress" 
+          name="hardwareAddress" 
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="00:1A:2B:3C:4D:5E" 
+          required>
+      </div>
+
+      <!-- Name -->
+      <div>
+        <label for="name" class="block text-gray-600 font-medium mb-2">
+          <i class="ri-camera-3-line text-gray-500 mr-2"></i>
+          Camera Name
+        </label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="Front Door Camera" 
+          required>
+      </div>
+
+      <!-- Camera ID -->
+      <div>
+        <label for="cameraId" class="block text-gray-600 font-medium mb-2">
+          <i class="ri-barcode-line text-gray-500 mr-2"></i>
+          Camera ID
+        </label>
+        <input 
+          type="text" 
+          id="cameraId" 
+          name="cameraId" 
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="CAM12345" 
+          required>
+      </div>
+
+      <!-- IP Address -->
+      <div>
+        <label for="ipAddress" class="block text-gray-600 font-medium mb-2">
+          <i class="ri-router-line text-gray-500 mr-2"></i>
+          IP Address
+        </label>
+        <input 
+          type="text" 
+          id="ipAddress" 
+          name="ipAddress" 
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="192.168.1.10">
+      </div>
+
+      <!-- Port -->
+      <div>
+        <label for="port" class="block text-gray-600 font-medium mb-2">
+          <i class="ri-terminal-box-line text-gray-500 mr-2"></i>
+          Port
+        </label>
+        <input 
+          type="number" 
+          id="port" 
+          name="port" 
+          class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          placeholder="8080" 
+          min="3000" 
+          max="65535">
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button 
+          type="submit" 
+          class="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center">
+          <i class="ri-save-line text-xl mr-2"></i>
+          Save Configuration
+        </button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
