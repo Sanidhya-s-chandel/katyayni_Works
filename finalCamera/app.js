@@ -3,13 +3,14 @@ const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
 const path = require('path');
 const fs = require('fs');
+const onvif = require('onvif');
 
 const app = express();
 
 // Set ffmpeg-static binary path
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-// Set up EJS for the front-end
+// Setup for recordings and views
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 const recordingsFolder = path.join(__dirname, 'recordings');
@@ -19,66 +20,137 @@ if (!fs.existsSync(recordingsFolder)) {
   fs.mkdirSync(recordingsFolder);
 }
 
-// Static files (if needed)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Global variable to hold the ffmpeg process
 let ffmpegProcess = null;
 
-// Serve the main EJS page
+// Function to get RTSP stream URL using ONVIF
+const getRtspStreamUrl = (ip, username, password) => {
+  return new Promise((resolve, reject) => {
+    const camera = new onvif.Cam(
+      {
+        hostname: ip,
+        username: username,
+        password: password,
+        port: 80, // Default ONVIF port
+      },
+      function (err) {
+        if (err) {
+          console.error('ONVIF device initialization failed:', err.message || err);
+          reject(`Failed to initialize ONVIF device: ${err.message || err}`);
+          return;
+        }
+
+        // Get the profiles
+        this.getProfiles((err, profiles) => {
+          if (err) {
+            console.error('Error fetching profiles:', err.message || err);
+            reject(`Failed to get profiles: ${err.message || err}`);
+            return;
+          }
+
+          if (!profiles || profiles.length === 0) {
+            console.error('No profiles found for the camera.');
+            reject('No profiles found for the camera.');
+            return;
+          }
+
+          // Use the first profile to get the RTSP stream URI
+          const profileToken = profiles[0].$['token'];
+          this.getStreamUri({ protocol: 'RTSP', profileToken: profileToken }, (err, stream) => {
+            if (err) {
+              console.error('Error fetching RTSP stream URI:', err.message || err);
+              reject(`Failed to get RTSP stream URI: ${err.message || err}`);
+            } else if (!stream || !stream.uri) {
+              console.error('Stream URI is missing or undefined.');
+              reject('Stream URI is missing or undefined.');
+            } else {
+              resolve(stream.uri); // RTSP stream URL
+            }
+          });
+        });
+      }
+    );
+  });
+};
+
+
+// Serve the main page
 app.get('/', (req, res) => {
   res.render('index');
 });
 
 // Start recording route
-app.get('/start-recording', (req, res) => {
-  if (!ffmpegProcess) {
-    const outputFilePath = path.join(__dirname, 'recordings', 'output_video.mkv'); // Output file path
+app.get('/start-recording', async (req, res) => {
+  const ip = '49.36.26.249'; // Replace with your camera's IP address
+  const username = 'sanidhyasingh@katyayaniorgaincs.com'; // Replace with your camera username
+  const password = 'sanidhya123'; // Replace with your camera password
 
-    // viedoDevice will be changed as per the device name and audioDevice will be changed as per the audio device name/ can be added if needed
-    const videoDevice = `video=@device_pnp_\\\\?\\usb#vid_174f&pid_14b2&mi_00#7&c827edc&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global`;
+  if (ffmpegProcess) {
+    return res.status(400).send('A recording process is already active.');
+  }
+
+  try {
+    console.log('Attempting to fetch RTSP stream URL...');
+    const rtspUrl = await getRtspStreamUrl(ip, username, password);
+
+    if (!rtspUrl) {
+      console.error('Failed to retrieve RTSP stream URL.');
+      return res.status(400).send('Failed to retrieve RTSP stream URL.');
+    }
+
+    console.log(`RTSP URL obtained: ${rtspUrl}`);
+    const outputFilePath = path.join(recordingsFolder, `${Date.now()}.mov`);
 
     ffmpegProcess = ffmpeg()
-      .input(videoDevice) // Video input
-      .inputFormat('dshow') // Input format for Windows
-      .videoCodec('libx264') // H.264 codec for video
-      .audioCodec('aac') // AAC codec for audio
-      .output(outputFilePath) // Output file in the recordings folder
-      .outputOptions('-preset fast') // Faster processing
-      .on('start', (commandLine) => {
-        console.log('Recording started with command:', commandLine);
-      })
+      .input(rtspUrl)
+      .inputOptions(['-rtsp_transport', 'tcp', '-stimeout', '5000000'])
+      .videoCodec('libx264')
+      .audioCodec('aac')
+      .output(outputFilePath)
+      .outputOptions(['-preset', 'fast', '-crf', '23', '-movflags', 'faststart'])
+      .on('start', (commandLine) => console.log(`Recording started: ${commandLine}`))
       .on('end', () => {
-        console.log('Recording finished');
-        ffmpegProcess = null; // Reset ffmpegProcess
+        console.log('Recording finished successfully.');
+        ffmpegProcess = null;
       })
-      .on('error', (err, stdout, stderr) => {
-        console.error('Error during recording:', err);
-        console.error('FFmpeg stdout:', stdout);
-        console.error('FFmpeg stderr:', stderr);
-        ffmpegProcess = null; // Reset ffmpegProcess on error
+      .on('error', (err) => {
+        console.error('Error during recording:', err.message);
+        ffmpegProcess = null;
       });
 
     ffmpegProcess.run();
-    res.send('Recording started');
-  } else {
-    res.send('Recording is already in progress');
+    res.send('Recording started successfully.');
+  } catch (err) {
+    console.error('Error starting recording:', err);
+    res.status(500).send(`Failed to start recording: ${err.message || err}`);
   }
 });
 
+
+
 // Stop recording route
 app.get('/stop-recording', (req, res) => {
-  if (ffmpegProcess) {
-    try {
-      ffmpegProcess.kill('SIGINT'); // Stop the ffmpeg process gracefully
-      ffmpegProcess = null; // Reset ffmpegProcess
-      res.send('Recording stopped');
-    } catch (err) {
-      console.error('Error stopping recording:', err);
-      res.status(500).send('Failed to stop recording');
-    }
-  } else {
-    res.send('No recording is in progress');
+  if (!ffmpegProcess) {
+    return res.status(400).send('No active recording to stop.');
+  }
+
+  try {
+    ffmpegProcess.on('close', (code) => {
+      if (code === 0) {
+        console.log('Recording stopped successfully.');
+        res.send('Recording stopped and saved successfully.');
+      } else {
+        console.error(`FFmpeg process exited with code ${code}.`);
+        res.status(500).send('Recording stopped with errors.');
+      }
+      ffmpegProcess = null;
+    });
+
+    ffmpegProcess.kill('SIGINT');
+  } catch (err) {
+    console.error('Error while stopping recording:', err.message);
+    res.status(500).send('Failed to stop recording.');
   }
 });
 

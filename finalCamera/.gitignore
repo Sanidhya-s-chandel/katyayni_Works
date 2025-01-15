@@ -6,5 +6,3 @@
 
 # Ignore the .env file in the Setup folder
 /Setup/.env
-
-/cam/node_modules

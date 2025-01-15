@@ -11,7 +11,7 @@ const cameraConfigSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true, // Removes extra spaces
-  },
+  },  
   cameraId: {
     type: String,
     required: true,

@@ -3,45 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webcam Recorder</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 18px;
-      margin: 10px;
-      cursor: pointer;
-    }
-  </style>
+  <title>IP Camera Recorder</title>
 </head>
 <body>
-  <h1>Webcam Recorder</h1>
-  
-  <div>
-    <button onclick="startRecording()">Start Recording</button>
-    <button onclick="stopRecording()">Stop Recording</button>
-  </div>
-
+  <h1>IP Camera Recorder</h1>
+  <button onclick="startRecording()">Start Recording</button>
+  <button onclick="stopRecording()">Stop Recording</button>
   <script>
-    function startRecording() {
-      fetch('/start-recording')
-        .then(response => response.text())
-        .then(data => {
-          alert(data);
-        });
-    }
+    const startRecording = async () => {
+      try {
+        const response = await fetch('/start-recording');
+        const text = await response.text();
+        alert(text);
+      } catch (err) {
+        alert('Error starting recording: ' + err.message);
+      }
+    };
 
-    function stopRecording() {
-      fetch('/stop-recording')
-        .then(response => response.text())
-        .then(data => {
-          alert(data);
-        });
-    }
+    const stopRecording = async () => {
+      try {
+        const response = await fetch('/stop-recording');
+        const text = await response.text();
+        alert(text);
+      } catch (err) {
+        alert('Error stopping recording: ' + err.message);
+      }
+    };
   </script>
 </body>
 </html>
